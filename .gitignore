@@ -1,0 +1,43 @@
+# Flutter/Dart specific
+.dart_tool/
+.packages
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Android specific
+**/android/app/build/
+**/android/.gradle/
+**/android/local.properties
+**/android/.cxx/
+**/android/build/
+**/android/captures/
+**/android/.externalNativeBuild/
+**/android/app/.cxx/
+**/android/**/.gradle/
+**/android/**/build/
+**/android/gradle-wrapper.jar
+*.apk
+*.ap_
+*.dex
+*.class
+
+# iOS specific
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+
+# VS Code / IntelliJ
+.vscode/
+.idea/
+
+# Misc
+*.iml
+.fvm/
+.fvmrc
+
+# Android log and build files
+**/android/*.log
+**/android/**/errors*.log

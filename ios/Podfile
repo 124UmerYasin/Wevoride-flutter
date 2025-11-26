@@ -1,0 +1,187 @@
+# Uncomment this line to define a global platform for your project
+platform :ios, '14.0'
+
+# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure flutter pub get is executed first"
+  end
+
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig, then run flutter pub get"
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  pod 'Firebase/Core', :modular_headers => true
+  pod 'Firebase/Auth', :modular_headers => true
+  pod 'Firebase/Firestore', :modular_headers => true
+  pod 'Firebase/AppCheck', :modular_headers => true
+  pod 'Firebase/Analytics', :modular_headers => true
+  pod 'Firebase/Database', :modular_headers => true
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
+
+
+post_install do |installer|
+  installer.pods_project.build_configurations.each do |config|
+        config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+        config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+        config.build_settings['ONLY_ACTIVE_ARCH'] = 'NO'
+  end
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    if target.name == 'BoringSSL-GRPC'
+      target.source_build_phase.files.each do |file|
+        if file.settings && file.settings['COMPILER_FLAGS']
+          flags = file.settings['COMPILER_FLAGS'].split
+          flags.reject! { |flag| flag == '-GCC_WARN_INHIBIT_ALL_WARNINGS' }
+          file.settings['COMPILER_FLAGS'] = flags.join(' ')
+        end
+      end
+    end
+    
+    # Fix Razorpay nested frameworks - Add build phase to strip nested content
+    if target.name == 'razorpay_flutter'
+      puts "🔧 Adding Razorpay framework stripping phase..."
+      
+      # Add a shell script build phase to strip nested frameworks
+      shell_script_phase = target.new_shell_script_build_phase('Strip Razorpay Nested Frameworks')
+      shell_script_phase.shell_script = <<-SCRIPT
+        echo "🔧 Stripping Razorpay nested frameworks..."
+        
+        # Find Razorpay.framework in the built products
+        RAZORPAY_FRAMEWORK="${BUILT_PRODUCTS_DIR}/Razorpay/Razorpay.framework"
+        
+        # Also check in the target build directory
+        if [ ! -d "$RAZORPAY_FRAMEWORK" ]; then
+          RAZORPAY_FRAMEWORK="${TARGET_BUILD_DIR}/Razorpay.framework"
+        fi
+        
+        # Check Pods directory
+        if [ ! -d "$RAZORPAY_FRAMEWORK" ]; then
+          RAZORPAY_FRAMEWORK="${PODS_ROOT}/Razorpay/Razorpay.framework"
+        fi
+        
+        if [ -d "$RAZORPAY_FRAMEWORK" ]; then
+          echo "📦 Found Razorpay.framework at: $RAZORPAY_FRAMEWORK"
+          
+          # Remove nested Frameworks
+          if [ -d "$RAZORPAY_FRAMEWORK/Frameworks" ]; then
+            echo "🗑️  Removing nested Frameworks directory..."
+            rm -rf "$RAZORPAY_FRAMEWORK/Frameworks"
+          fi
+          
+          # Remove nested bundles
+          find "$RAZORPAY_FRAMEWORK" -name "*.bundle" -type d -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true
+          
+          # Remove nested frameworks
+          find "$RAZORPAY_FRAMEWORK" -name "*.framework" -type d -maxdepth 1 ! -name "Razorpay.framework" -exec rm -rf {} + 2>/dev/null || true
+          
+          echo "✅ Razorpay.framework cleaned"
+        else
+          echo "⚠️  Razorpay.framework not found"
+        fi
+      SCRIPT
+      
+      target.build_configurations.each do |config|
+        config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+      end
+    end
+  end
+  
+  # CRITICAL: Remove nested content from Razorpay framework immediately after pod install
+  puts "🔧 Cleaning Razorpay framework nested content..."
+  
+  # Razorpay uses xcframework with separate frameworks for simulator and device
+  razorpay_xcframework_path = File.join(installer.sandbox.root, 'razorpay-core-pod/Pod/core/Razorpay.xcframework')
+  
+  if Dir.exist?(razorpay_xcframework_path)
+    puts "📦 Found Razorpay.xcframework at: #{razorpay_xcframework_path}"
+    
+    # Clean both device and simulator frameworks
+    ['ios-arm64', 'ios-arm64_x86_64-simulator'].each do |platform|
+      framework_path = File.join(razorpay_xcframework_path, platform, 'Razorpay.framework')
+      
+      if Dir.exist?(framework_path)
+        puts "  � Cleaning #{platform} framework..."
+        
+        # Remove nested Frameworks directory
+        nested_frameworks = File.join(framework_path, 'Frameworks')
+        if Dir.exist?(nested_frameworks)
+          puts "    🗑️  Removing nested Frameworks directory..."
+          FileUtils.rm_rf(nested_frameworks)
+        end
+        
+        # Remove nested bundles
+        Dir.glob(File.join(framework_path, '*.bundle')).each do |bundle|
+          puts "    🗑️  Removing nested bundle: #{File.basename(bundle)}"
+          FileUtils.rm_rf(bundle)
+        end
+        
+        # Remove nested frameworks (excluding the main one)
+        Dir.glob(File.join(framework_path, '*.framework')).each do |nested_fw|
+          unless File.basename(nested_fw) == 'Razorpay.framework'
+            puts "    🗑️  Removing nested framework: #{File.basename(nested_fw)}"
+            FileUtils.rm_rf(nested_fw)
+          end
+        end
+        
+        puts "    ✅ Cleaned #{platform} framework"
+      end
+    end
+    
+    puts "✅ All Razorpay frameworks cleaned!"
+  else
+    puts "⚠️  Razorpay.xcframework not found - checking alternate locations..."
+    
+    # Fallback: check other possible locations
+    razorpay_paths = [
+      File.join(installer.sandbox.root, 'Razorpay/Razorpay.framework'),
+      File.join(installer.sandbox.root, 'razorpay-pod/Razorpay.framework')
+    ]
+    
+    razorpay_paths.each do |razorpay_framework_path|
+      if File.exist?(razorpay_framework_path)
+        puts "📦 Found Razorpay.framework at: #{razorpay_framework_path}"
+        
+        # Remove nested Frameworks directory
+        nested_frameworks = File.join(razorpay_framework_path, 'Frameworks')
+        if Dir.exist?(nested_frameworks)
+          puts "🗑️  Removing nested Frameworks directory..."
+          FileUtils.rm_rf(nested_frameworks)
+        end
+        
+        # Remove nested bundles
+        Dir.glob(File.join(razorpay_framework_path, '*.bundle')).each do |bundle|
+          puts "🗑️  Removing nested bundle: #{File.basename(bundle)}"
+          FileUtils.rm_rf(bundle)
+        end
+        
+        puts "✅ Cleaned Razorpay.framework at: #{razorpay_framework_path}"
+      end
+    end
+  end
+end

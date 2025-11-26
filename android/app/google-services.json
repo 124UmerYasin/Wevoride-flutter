@@ -1,0 +1,95 @@
+{
+  "project_info": {
+    "project_number": "130036512833",
+    "firebase_url": "https://wevoride-21bb8-default-rtdb.firebaseio.com",
+    "project_id": "wevoride-21bb8",
+    "storage_bucket": "wevoride-21bb8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:130036512833:android:fba45c052faae70cc22ec0",
+        "android_client_info": {
+          "package_name": "com.wevoride"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "130036512833-1a9g97m25tue3rl9etubk6eieqlv7psd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wevoride",
+            "certificate_hash": "a9652cbe9aa58716d16b8288d9940b8e0c01868b"
+          }
+        },
+        {
+          "client_id": "130036512833-ab32hfsql1fab37913s8a29d43ienmtr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wevoride",
+            "certificate_hash": "3a84e53eb7d5fe00a2378bb8b148ffd188d0c9a3"
+          }
+        },
+        {
+          "client_id": "130036512833-c12dun2u1oa4tete48sukj5vguduql2q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wevoride",
+            "certificate_hash": "0a89dc4c0cb1afed19f0216093f855dc450d01a7"
+          }
+        },
+        {
+          "client_id": "130036512833-jmtfrjfqh7sciaee05q3orprv9im4nma.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wevoride",
+            "certificate_hash": "58bd5997c0a41f243f01993aaab0761d41610374"
+          }
+        },
+        {
+          "client_id": "130036512833-qoaf7ea7i2tr0jd8uutd674ra6hmv98m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wevoride",
+            "certificate_hash": "d9eec73484751ccdb30046e6bc48131d534fe740"
+          }
+        },
+        {
+          "client_id": "130036512833-sjfooglpkt83lcgdhhqbjg1k6nbnvvk0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wevoride",
+            "certificate_hash": "b618a6d7dc967a5da0f17836f1599d7348df5788"
+          }
+        },
+        {
+          "client_id": "130036512833-brpqu61chf13d9d999j9oll4chh36bn6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpnQOVru-EdSqdfmL-PihnIruYE_uAcKY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "130036512833-brpqu61chf13d9d999j9oll4chh36bn6.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "130036512833-sgov411jgk3d3rvvqk447dfmq0bokn2j.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.wevoride"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
